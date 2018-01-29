@@ -3,6 +3,6 @@ package sgol
 type NamedQuery struct {
 	Name     string   `json:"name" hcl:"name"`
 	Sgol     string   `json:"sgol" hcl:"sgol"`
-	Required []string `json:"required" hcl:"required"`
-	Optional []string `json:"optional" hcl:"optional"`
+	Required []string `json:"required,omitempty" hcl:"required,omitempty"`
+	Optional []string `json:"optional,omitempty" hcl:"optional,omitempty"`
 }

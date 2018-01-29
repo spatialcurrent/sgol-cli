@@ -37,12 +37,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	config, err := sgol.LoadConfig(os.Getenv("SGOL_CONFIG_PATH"), true)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	cmd := os.Args[1]
 
 	commands := map[string]sgol.Command{}
 	//commands["help"] = &sgol.HelpCommand{}
-	//commands["queries"] = &sgolQueriesCommand{}
-	commands["exec"] = &sgol.ExecCommand{}
+	commands["queries"] = sgol.NewQueriesCommand(config)
+	commands["formats"] = sgol.NewFormatsCommand(config)
+	commands["exec"] = sgol.NewExecCommand(config)
 	//commands["lint"] = &sgol.LintCommand{}
 
 	if cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "-help" {
@@ -60,13 +67,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := sgol.LoadConfig(os.Getenv("SGOL_CONFIG_PATH"), true)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	err = commands[cmd].Parse(config, os.Args[2:])
+	err = commands[cmd].Parse(os.Args[2:])
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Run \"sgol "+cmd+" -help\" for command line options.")

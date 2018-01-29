@@ -4,6 +4,7 @@ import (
   "fmt"
   "os"
   "net/url"
+  "strings"
   "time"
 )
 
@@ -29,18 +30,18 @@ func (cmd *ExecCommand) CheckQuery() error {
   return nil
 }
 
-func (cmd *ExecCommand) Parse(config *Config, args []string) error {
+func (cmd *ExecCommand) Parse(args []string) error {
 
-  fmt.Println(config)
-  cmd.config = config
   fs := cmd.NewFlagSet(cmd.GetName())
+
+  output_format_help := "Output format.  Options: "+strings.Join(cmd.config.GetFormatIds(), ", ")
+  fs.StringVar(&cmd.output_format_text, "f", "", output_format_help)
 
   //c.sgol_config_path = flagSet.String("c", os.Getenv("SGOL_CONFIG_PATH"), "path to SGOL config.hcl")
   fs.StringVar(&cmd.server_url, "u", os.Getenv("SGOL_SERVER_URL"), "Server url.")
   fs.StringVar(&cmd.named_query_name, "named_query", "", "Named SGOL query.")
   fs.StringVar(&cmd.query, "q", "", "SGOL query.")
-  fs.StringVar(&cmd.output_format_text, "f", "", "Output format")
-  fs.StringVar(&cmd.auth_token, "t", os.Getenv("SGOL_AUTH_TOKEN"), "Authentication token.")
+  fs.StringVar(&cmd.auth_token, "t", os.Getenv("SGOL_AUTH_TOKEN"), "Authentication token.  Default: environment variable SGOL_AUTH_TOKEN.")
   fs.StringVar(&cmd.output_uri, "output_uri", "stdout", "stdout, stderr, or filepath")
   fs.BoolVar(&cmd.output_append, "append", false, "Append to existing file")
   fs.BoolVar(&cmd.output_overwrite, "overwrite", false, "Overwrite existing file")
@@ -94,6 +95,9 @@ func (cmd *ExecCommand) Run(log *logrus.Logger, start time.Time, version string)
 		if len(named_query_object.Name) == 0 {
 			return errors.New("Error: Could not find named query with name " + cmd.named_query_name + ".")
 		}
+    if cmd.verbose {
+      fmt.Println("Using query template "+named_query_object.Sgol)
+    }
 		ctx, err := BuildContext(cmd.flagSet.Args(), named_query_object.Required, named_query_object.Optional)
 		if err != nil {
 			return err
@@ -126,4 +130,14 @@ func (cmd *ExecCommand) Run(log *logrus.Logger, start time.Time, version string)
   }
 
   return nil
+}
+
+func NewExecCommand(config *Config) *ExecCommand {
+  return &ExecCommand{
+    HttpCommand: &HttpCommand{
+      BasicCommand: &BasicCommand{
+        config: config,
+      },
+    },
+  }
 }
