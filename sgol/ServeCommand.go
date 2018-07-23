@@ -15,19 +15,11 @@ import (
 
 type ExecCommand struct {
   *HttpCommand
-  named_query_name string
-  query string
+  server_port int
 }
 
 func (cmd *ExecCommand) GetName() string {
-  return "exec"
-}
-
-func (cmd *ExecCommand) CheckQuery() error {
-  if len(cmd.query) == 0 && len(cmd.named_query_name) == 0 {
-    return errors.New("Error: Missing query.")
-  }
-  return nil
+  return "serve"
 }
 
 func (cmd *ExecCommand) Parse(args []string) error {
@@ -39,12 +31,6 @@ func (cmd *ExecCommand) Parse(args []string) error {
 
   //c.sgol_config_path = flagSet.String("c", os.Getenv("SGOL_CONFIG_PATH"), "path to SGOL config.hcl")
   fs.StringVar(&cmd.backend_url, "u", os.Getenv("SGOL_BACKEND_URL"), "Backend url.")
-  fs.StringVar(&cmd.named_query_name, "named_query", "", "Named SGOL query.")
-  fs.StringVar(&cmd.query, "q", "", "SGOL query.")
-  fs.StringVar(&cmd.auth_token, "t", os.Getenv("SGOL_AUTH_TOKEN"), "Authentication token.  Default: environment variable SGOL_AUTH_TOKEN.")
-  fs.StringVar(&cmd.output_uri, "output_uri", "stdout", "stdout, stderr, or filepath")
-  fs.BoolVar(&cmd.output_append, "append", false, "Append to existing file")
-  fs.BoolVar(&cmd.output_overwrite, "overwrite", false, "Overwrite existing file")
   fs.BoolVar(&cmd.verbose, "verbose", false, "Provide verbose output")
   fs.BoolVar(&cmd.dry_run, "dry_run", false, "Connect to destination, but don't import any data.")
   fs.BoolVar(&cmd.version, "version", false, "Version")
@@ -55,22 +41,7 @@ func (cmd *ExecCommand) Parse(args []string) error {
     return err
   }
 
-  err = cmd.CheckQuery()
-  if err != nil {
-    return err
-  }
-
   err = cmd.ParseBackendUrl()
-  if err != nil {
-    return err
-  }
-
-  err = cmd.ParseAuthToken()
-  if err != nil {
-    return err
-  }
-
-  err = cmd.ParseOutputFormat()
   if err != nil {
     return err
   }
@@ -132,8 +103,8 @@ func (cmd *ExecCommand) Run(log *logrus.Logger, start time.Time, version string)
   return nil
 }
 
-func NewExecCommand(config *Config) *ExecCommand {
-  return &ExecCommand{
+func NewServeCommand(config *Config) *ServeCommand {
+  return &ServeCommand{
     HttpCommand: &HttpCommand{
       BasicCommand: &BasicCommand{
         config: config,

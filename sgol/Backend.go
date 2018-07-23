@@ -1,5 +1,5 @@
 package sgol
 
-type Server struct {
+type Backend struct {
 	Url string `json:"url" hcl:"url"`
 }

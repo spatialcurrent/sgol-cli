@@ -12,15 +12,15 @@ import (
 
 type HttpCommand struct {
   *BasicCommand
-  server_url string
+  backend_url string
   auth_token string
 }
 
-func (cmd *HttpCommand) ParseServerUrl() error {
-  if len(cmd.server_url) == 0 {
-    cmd.server_url = cmd.config.Server.Url
-    if len(cmd.server_url) == 0 {
-      return errors.New("Error: missing server url")
+func (cmd *HttpCommand) ParseBackendUrl() error {
+  if len(cmd.backend_url) == 0 {
+    cmd.backend_url = cmd.config.Backend.Url
+    if len(cmd.backend_url) == 0 {
+      return errors.New("Error: missing backend url")
     }
   }
   return nil
@@ -45,10 +45,6 @@ func (cmd *HttpCommand) MakeRequest(url string, auth_token string, verbose bool)
   req, err := http.NewRequest("GET", url, nil)
   if err != nil {
     return "", err
-  }
-
-  if cmd.verbose {
-    fmt.Println("Using auth token:", auth_token)
   }
 
   req.Header.Set("X-Auth-Token", auth_token)
